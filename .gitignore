@@ -52,3 +52,9 @@ docs/_build/
 
 # PyBuilder
 target/
+
+# OS X hidded files
+.DS_Store
+
+# project files
+.idea/
