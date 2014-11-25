@@ -8,16 +8,24 @@ def read_fasta_char_by_char(fn):
                 yield c
 
 def read_fasta_kmer_by_kmer(fn, k):
-    """Creates an iterator  for all k-mers.
-    Assumption: there is at least k nucleotides in the file,
-    otherwise, this function will throw an exception."""
-    fastaCharIterator = read_fasta_char_by_char(fn)
+    """Creates an iterator  for all k-mers."""
     curKmer = '#'
-    for i in range(k-1):
-        curKmer += next(fastaCharIterator)
-    for c in fastaCharIterator:
-        curKmer = curKmer[1:] + c
-        yield curKmer
+    init_k = 1
+    with open(fn) as fh:
+        for ln in fh:
+            ln = ln.strip()
+            if ln[0] == '>':
+                curKmer = '#'
+                init_k = 1
+                continue
+            elif init_k < k:
+                curKmer += ln[:(k-init_k)]
+                ln = ln[k-init_k:]
+                init_k = len(curKmer)
+            for c in ln:
+                curKmer = curKmer[1:] + c
+                yield curKmer
+
 
 class KmerSupplier(object):
     """given filename and k, generates kmer iterators based on file type."""
