@@ -1,86 +1,175 @@
-# -*- coding: utf-8 -*-
-import hashlib
-import array
+#!/usr/bin/env python
+# encoding: utf-8
+
+"""
+cmsketch.py
+
+An implementation of count-min sketching from the paper due to Cormode and
+Muthukrishnan 2005
+
+"""
+
+import sys
+import random
+import numpy as np
+import heapq
+
+P = 9223372036854775783
+
+def random_parameter():
+    return random.randrange(0, P - 1)
 
 
 class countLeastSquares(object):
-    """
-    A class for counting hashable items using the Count-min Sketch strategy.
-    It fulfills a similar purpose than `itertools.Counter`.
-    The Count-min Sketch is a randomized data structure that uses a constant
-    amount of memory and has constant insertion and lookup times at the cost
-    of an arbitrarily small overestimation of the counts.
-    It has two parameters:
-     - `m` the size of the hash tables, larger implies smaller overestimation
-     - `d` the amount of hash tables, larger implies lower probability of
-           overestimation.
-    An example usage:
-        from countminsketch import CountMinSketch
-        sketch = CountMinSketch(1000, 10)  # m=1000, d=10
-        sketch.add("oh yeah")
-        sketch.add(tuple())
-        sketch.add(1, value=123)
-        print sketch["oh yeah"]       # prints 1
-        print sketch[tuple()]         # prints 1
-        print sketch[1]               # prints 123
-        print sketch["non-existent"]  # prints 0
-    Note that this class can be used to count *any* hashable type, so it's
-    possible to "count apples" and then "ask for oranges". Validation is up to
-    the user.
-    """
+    def __init__(self, delta, epsilon, k):
+        """
+        Setup a new count-min sketch with parameters delta, epsilon and k
 
-    def __init__(self, m, d):
-        """ `m` is the size of the hash tables, larger implies smaller
-        overestimation. `d` the amount of hash tables, larger implies lower
-        probability of overestimation.
-        """
-        if not m or not d:
-            raise ValueError("Table size (m) and amount of hash functions (d)"
-                             " must be non-zero")
-        self.m = m
-        self.d = d
-        self.n = 0
-        self.tables = []
-        for _ in xrange(d):
-            table = array.array("l", (0 for _ in xrange(m)))
-            self.tables.append(table)
+        The parameters delta and epsilon control the accuracy of the
+        estimates of the sketch
 
-    def _hash(self, x):
-        md5 = hashlib.md5(str(hash(x)))
-        for i in xrange(self.d):
-            md5.update(str(i))
-            yield int(md5.hexdigest(), 16) % self.m
+        Cormode and Muthukrishnan prove that for an item i with count a_i, the
+        estimate from the sketch a_i_hat will satisfy the relation
 
-    def add(self, x, value=1):
-        """
-        Count element `x` as if had appeared `value` times.
-        By default `value=1` so:
-            sketch.add(x)
-        Effectively counts `x` as occurring once.
-        """
-        self.n += value
-        for table, i in zip(self.tables, self._hash(x)):
-            table[i] += value
+        a_hat_i <= a_i + epsilon * ||a||_1
 
-    def query(self, x):
-        """
-        Return an estimation of the amount of times `x` has ocurred.
-        The returned value always overestimates the real value.
-        """
-        return min(table[i] for table, i in zip(self.tables, self._hash(x)))
+        with probability at least 1 - delta, where a is the the vector of all
+        all counts and ||x||_1 is the L1 norm of a vector x
 
-    def gettable(self,x):
-        return zip(self.tables,self._hash(x))
+        Parameters
+        ----------
+        delta : float
+            A value in the unit interval that sets the precision of the sketch
+        epsilon : float
+            A value in the unit interval that sets the precision of the sketch
+        k : int
+            A positive integer that sets the number of top items counted
 
-    def __getitem__(self, x):
-        """
-        A convenience method to call `query`.
-        """
-        return self.query(x)
+        Examples
+        --------
+        s = Sketch(10**-7, 0.005, 40)
 
-    def __len__(self):
+        Raises
+        ------
+        ValueError
+            If delta or epsilon are not in the unit interval, or if k is
+            not a positive integer
+
         """
-        The amount of things counted. Takes into account that the `value`
-        argument of `add` might be different from 1.
+        if delta <= 0 or delta >= 1:
+            raise ValueError("delta must be between 0 and 1, exclusive")
+        if epsilon <= 0 or epsilon >= 1:
+            raise ValueError("epsilon must be between 0 and 1, exclusive")
+        if k < 1:
+            raise ValueError("k must be a positive integer")
+
+        self.w = int(np.ceil(np.exp(1) / epsilon))
+        self.d = int(np.ceil(np.log(1 / delta)))
+        self.k = k
+        self.hash_functions = [self.__generate_hash_function() for i in range(self.d)]
+        self.count = np.zeros((self.d, self.w), dtype='int32')
+        self.heap, self.top_k = [], {} # top_k => [estimate, key] pairs
+
+    def update(self, key, increment):
         """
-        return self.n
+        Updates the sketch for the item with name of key by the amount
+        specified in increment
+
+        Parameters
+        ----------
+        key : string
+            The item to update the value of in the sketch
+        increment : integer
+            The amount to update the sketch by for the given key
+
+        Examples
+        --------
+        s = Sketch(10**-7, 0.005, 40)
+        s.update('http://www.cnn.com/', 1)
+
+        """
+        for row, hash_function in enumerate(self.hash_functions):
+            column = hash_function(abs(hash(key)))
+            self.count[row, column] += increment
+
+        self.update_heap(key)
+
+    def update_heap(self, key):
+        """
+        Updates the class's heap that keeps track of the top k items for a
+        given key
+
+        For the given key, it checks whether the key is present in the heap,
+        updating accordingly if so, and adding it to the heap if it is
+        absent
+
+        Parameters
+        ----------
+        key : string
+            The item to check against the heap
+
+        """
+        estimate = self.get(key)
+
+        if not self.heap or estimate >= self.heap[0][0]:
+            if key in self.top_k:
+                old_pair = self.top_k.get(key)
+                old_pair[0] = estimate
+                heapq.heapify(self.heap)
+            else:
+                if len(self.top_k) < self.k:
+                    heapq.heappush(self.heap, [estimate, key])
+                    self.top_k[key] = [estimate, key]
+                else:
+                    new_pair = [estimate, key]
+                    old_pair = heapq.heappushpop(self.heap, new_pair)
+                    del self.top_k[old_pair[1]]
+                    self.top_k[key] = new_pair
+
+    def get(self, key):
+        """
+        Fetches the sketch estimate for the given key
+
+        Parameters
+        ----------
+        key : string
+            The item to produce an estimate for
+
+        Returns
+        -------
+        estimate : int
+            The best estimate of the count for the given key based on the
+            sketch
+
+        Examples
+        --------
+        s = Sketch(10**-7, 0.005, 40)
+        s.update('http://www.cnn.com/', 1)
+        s.get('http://www.cnn.com/')
+        1
+
+        """
+        value = sys.maxint
+        for row, hash_function in enumerate(self.hash_functions):
+            column = hash_function(abs(hash(key)))
+            value = min(self.count[row, column], value)
+
+        return value
+
+    def lsquareest(self,key):
+        countmin = self.get(key)
+        A = np.zeros((self.d, self.w+1), dtype='int32')
+        for row, hash_function in enumerate(self.hash_functions):
+            column = hash_function(abs(hash(key)))
+            A[row][column] = 1
+            A[row][self.w] = 1
+
+
+    def __generate_hash_function(self):
+        """
+        Returns a hash function from a family of pairwise-independent hash
+        functions
+
+        """
+        a, b = random_parameter(), random_parameter()
+        return lambda x: (a * x + b) % P % self.w
