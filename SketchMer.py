@@ -23,7 +23,7 @@ def build_countLSsketch(ksup,delta,epsilon):
         sketch.update(kmer,1)
     return sketch
 
-ksup = ks.KmerSupplier('../DATA/yeast.fa', 42)
+ksup = ks.KmerSupplier('../DATA/g1.fa', 42)
 sketch = build_countLSsketch(ksup,delta=10**-7,epsilon=0.005)
 
 
