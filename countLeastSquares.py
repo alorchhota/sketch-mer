@@ -157,14 +157,11 @@ class countLeastSquares(object):
             value = min(self.count[row, column], value)
 
         return value
-
-    def lsquare(self,key):
+    def singlelsquare(self,key):
         #A = np.zeros((self.d*self.w,self.n), dtype='int32')
         b = self.count.ravel()
-        len_list = len(list(self.top_k.iterkeys()))
         A = np.zeros((self.d*self.w, 2), dtype='int32')
         b = self.count.ravel()
-        flag = True
         for row, hash_function in enumerate(self.hash_functions):
             column = hash_function(abs(hash(key)))
             A[row*self.w+column][0] = 1
@@ -172,7 +169,7 @@ class countLeastSquares(object):
             A[i][1]= 1
         x = np.dot(np.linalg.pinv(A),b)
         cmin = self.get(key)
-        return x[0], min(x[0], cmin)
+        return min(x[0], cmin)
 
     def __getitem__(self, key):
         #A convenience method to call `get`.
