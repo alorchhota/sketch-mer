@@ -37,3 +37,4 @@ def build_countLSsketch(ksup,delta,epsilon):
 ksup = ks.KmerSupplier("../DATA/g1.fa", 22)
 ## delta and epsilon can be taken from the user too
 sketch = build_countLSsketch(ksup,delta=10**-7,epsilon=0.005)
+least_est = lsquare(sketch)
