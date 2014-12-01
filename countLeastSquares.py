@@ -68,6 +68,7 @@ class countLeastSquares(object):
         self.k = k
         self.hash_functions = [self.__generate_hash_function() for i in range(self.d)]
         self.count = np.zeros((self.d, self.w), dtype='int32')
+        self.n = 0
         self.heap, self.top_k = [], {} # top_k => [estimate, key] pairs
 
     def update(self, key, increment):
@@ -110,6 +111,7 @@ class countLeastSquares(object):
 
         """
         estimate = self.get(key)
+        self.n += 1
 
         if not self.heap or estimate >= self.heap[0][0]:
             if key in self.top_k:
@@ -156,14 +158,44 @@ class countLeastSquares(object):
 
         return value
 
-    def lsquareest(self,key):
-        countmin = self.get(key)
-        A = np.zeros((self.d, self.w+1), dtype='int32')
-        for row, hash_function in enumerate(self.hash_functions):
-            column = hash_function(abs(hash(key)))
-            A[row][column] = 1
-            A[row][self.w] = 1
+    def lsquare(self):
+        #A = np.zeros((self.d*self.w,self.n), dtype='int32')
+        temp = np.zeros((self.d,self.w),dtype='int32')
+        b = self.count.ravel()
+        intercept = np.ones(self.d*self.w,dtype='int32')
+        len_list = len(list(self.top_k.iterkeys()))
+        A = np.zeros((self.d*self.w,len_list+1), dtype='int32')
+        b = self.count.ravel()
+        intercept = np.ones(self.d*self.w,dtype='int32')
+        flag = True
+        for kmer in self.top_k.iterkeys():
+            if(flag):
+                col=0
+                flag=False
+            else:
+                col = col+1
+            for row, hash_function in enumerate(self.hash_functions):
+                column = hash_function(abs(hash(kmer)))
+                A[row*self.w+column][col] = 1
+        for i in xrange(A.shape[1]):
+            A[i][len_list]= 1
+        x = np.dot(np.linalg.pinv(A),b)
+        result = {};
+        for i in xrange(len_list):
+            result[list(self.top_k.iterkeys())[i]]=x[i];
 
+        return x,result
+
+    def __getitem__(self, key):
+        #A convenience method to call `get`.
+        return self.get(key)
+
+    def __len__(self):
+        """
+        The amount of things counted. Takes into account that the `value`
+        argument of `add` might be different from 1.
+        """
+        return self.n
 
     def __generate_hash_function(self):
         """
