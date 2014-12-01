@@ -158,33 +158,21 @@ class countLeastSquares(object):
 
         return value
 
-    def lsquare(self):
+    def lsquare(self,key):
         #A = np.zeros((self.d*self.w,self.n), dtype='int32')
-        temp = np.zeros((self.d,self.w),dtype='int32')
         b = self.count.ravel()
-        intercept = np.ones(self.d*self.w,dtype='int32')
         len_list = len(list(self.top_k.iterkeys()))
-        A = np.zeros((self.d*self.w,len_list+1), dtype='int32')
+        A = np.zeros((self.d*self.w, 2), dtype='int32')
         b = self.count.ravel()
-        intercept = np.ones(self.d*self.w,dtype='int32')
         flag = True
-        for kmer in self.top_k.iterkeys():
-            if(flag):
-                col=0
-                flag=False
-            else:
-                col = col+1
-            for row, hash_function in enumerate(self.hash_functions):
-                column = hash_function(abs(hash(kmer)))
-                A[row*self.w+column][col] = 1
+        for row, hash_function in enumerate(self.hash_functions):
+            column = hash_function(abs(hash(key)))
+            A[row*self.w+column][0] = 1
         for i in xrange(A.shape[1]):
-            A[i][len_list]= 1
+            A[i][1]= 1
         x = np.dot(np.linalg.pinv(A),b)
-        result = {};
-        for i in xrange(len_list):
-            result[list(self.top_k.iterkeys())[i]]=x[i];
-
-        return x,result
+        cmin = self.get(key)
+        return x[0], min(x[0], cmin)
 
     def __getitem__(self, key):
         #A convenience method to call `get`.
