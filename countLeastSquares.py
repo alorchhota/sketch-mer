@@ -178,7 +178,8 @@ class countLeastSquares(object):
         x = np.dot(np.linalg.pinv(A),b)
         result = {};
         for i in xrange(len(keylist)):
-            result[keylist[i]] = int(round(min(x[i], self.get(keylist[i]))))
+            temp_val = max(x[i],0)
+            result[keylist[i]] = int(round(min(temp_val, self.get(keylist[i]))))
         return result
 
     def __getitem__(self, key):
