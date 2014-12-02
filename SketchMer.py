@@ -16,8 +16,8 @@ def build_countminsketch(ksup, w=1000, h=10):
     for kmer in ksup.iterkmers():
         sketch.add(kmer)
     return sketch
-def build_countLSsketch(ksup,delta,epsilon):
-    sketch = countLeastSquares(delta=10**-3, epsilon = 0.005, k=10)  # change the entry for k
+def build_countLSsketch(ksup,delta=10**-3,epsilon = 0.005):
+    sketch = countLeastSquares(delta, epsilon, k=10)  # change the entry for k
     for kmer in ksup.iterkmers():
         sketch.update(kmer,1)
     return sketch
