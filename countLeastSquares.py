@@ -172,12 +172,13 @@ class countLeastSquares(object):
             for row, hash_function in enumerate(self.hash_functions):
                 column = hash_function(abs(hash(kmer)))
                 A[row*self.w+column][col] = 1
+        len_list = len(keylist)
         for i in xrange(A.shape[1]):
             A[i][len(keylist)]= 1
         x = np.dot(np.linalg.pinv(A),b)
         result = {};
         for i in xrange(len(keylist)):
-            result[keylist[i]] = min(x[i], self.get(keylist[i]))
+            result[keylist[i]] = int(round(min(x[i], self.get(keylist[i]))))
         return result
 
     def __getitem__(self, key):
