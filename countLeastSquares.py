@@ -111,7 +111,6 @@ class countLeastSquares(object):
 
         """
         estimate = self.get(key)
-        self.n += 1
 
         if not self.heap or estimate >= self.heap[0][0]:
             if key in self.top_k:
@@ -125,8 +124,10 @@ class countLeastSquares(object):
                 else:
                     new_pair = [estimate, key]
                     old_pair = heapq.heappushpop(self.heap, new_pair)
-                    del self.top_k[old_pair[1]]
-                    self.top_k[key] = new_pair
+                    old_pair = old_pair[1]
+                    if key != old_pair:
+                        self.top_k.pop(old_pair)
+                        self.top_k[key] = new_pair
 
     def get(self, key):
         """
@@ -157,6 +158,7 @@ class countLeastSquares(object):
             value = min(self.count[row, column], value)
 
         return value
+
     def lsquare(self,keylist):
         A = np.zeros((self.d*self.w, len(keylist)+1), dtype='int32')
         b = self.count.ravel()
@@ -171,7 +173,7 @@ class countLeastSquares(object):
                 column = hash_function(abs(hash(kmer)))
                 A[row*self.w+column][col] = 1
         for i in xrange(A.shape[1]):
-            A[i][len_list]= 1
+            A[i][len(keylist)]= 1
         x = np.dot(np.linalg.pinv(A),b)
         result = {};
         for i in xrange(len(keylist)):
