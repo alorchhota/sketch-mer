@@ -34,8 +34,8 @@ def generate_countmin_ls_output(sketch, testFileName, cmOutFileName, lsOutFileNa
 
 workdir = '/home/ashis/work/github/sketch-mer'
 k = 22
-#datasets = ['rymv', 'tmv', 'saureus', 'ecoli', 'dmelanogaster']
-datasets = ['saureus']
+datasets = ['rymv', 'tmv', 'saureus', 'ecoli', 'dmelanogaster']
+#datasets = ['saureus']
 batchSizes = [1,10,100,1000,10000,100000]
 delta=10**-3
 epsilon = 0.005
@@ -61,3 +61,4 @@ for dataset in datasets:
         lsOutFileName = workdir + '/results/lsresult_' + dataset + '_' + str(batchSize) + '.txt'
         generate_countmin_ls_output(sketch, testFileName, cmOutFileName, lsOutFileName)
 
+print('see output in files: results/cmresult_***_**.txt and results/lsresult_***_**.txt')
