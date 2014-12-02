@@ -177,7 +177,7 @@ class KmerCounter(object):
 
 ## check
 # count kmers
-dataset =  'dmelanogaster' # rymv tmv saureus ecoli saureus dmelanogaster
+dataset =  'ecoli' # rymv tmv saureus ecoli dmelanogaster
 workdir = '/home/ashis/work/github/sketch-mer'
 odir = workdir + '/results/tmp'
 fn = workdir + '/data/' + dataset + '.fa'
