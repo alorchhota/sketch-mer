@@ -159,10 +159,11 @@ class countLeastSquares(object):
 
         return value
 
-    def lsquare(self,keylist):
+    def lsquare(self, keylist):
         len_list = len(keylist)
-        A = np.zeros((self.d*self.w, len_list+1), dtype='int32')
+        A = np.zeros((self.d*self.w, len_list), dtype='int32')
         b = self.count.ravel()
+        last_ones = np.ones((self.d*self.w,1),dtype='int32')
         flag = True
         for kmer in keylist:
             if flag:
@@ -173,8 +174,7 @@ class countLeastSquares(object):
             for row, hash_function in enumerate(self.hash_functions):
                 column = hash_function(abs(hash(kmer)))
                 A[row*self.w+column][col] = 1
-        for i in xrange(A.shape[1]):
-            A[i][len_list] = 1
+        A = np.concatenate((A,last_ones),axis=1)
         x = np.dot(np.linalg.pinv(A),b)
         result = {};
         for i in xrange(len(keylist)):
