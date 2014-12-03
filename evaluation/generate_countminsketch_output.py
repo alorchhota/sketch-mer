@@ -32,7 +32,7 @@ def generate_countmin_ls_output(sketch, testFileName, cmOutFileName, lsOutFileNa
                           for km in testKmers])
         outfile.write(text)
 
-workdir = '/home/ashis/work/github/sketch-mer'
+workdir = '/Users/princy/Documents/classes/computational_genomics/project/sketch-mer'
 k = 22
 datasets = ['rymv', 'tmv', 'saureus', 'ecoli', 'dmelanogaster']
 #datasets = ['saureus']
