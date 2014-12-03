@@ -63,7 +63,7 @@ class countLeastSquares(object):
         # if k < 1:
         #     raise ValueError("k must be a positive integer")
 
-        self.w = int(np.ceil(np.exp(1) / epsilon))
+        self.w = int(np.ceil(2.0 / epsilon))
         self.d = int(np.ceil(np.log(1 / delta)))
         # self.k = k
         self.hash_functions = [self.__generate_hash_function() for i in range(self.d)]
