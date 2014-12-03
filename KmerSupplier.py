@@ -14,6 +14,7 @@ def read_fasta_kmer_by_kmer(fn, k):
     with open(fn) as fh:
         for ln in fh:
             ln = ln.strip()
+            ln = ln.upper()
             if ln[0] == '>':
                 curKmer = '#'
                 init_k = 1
