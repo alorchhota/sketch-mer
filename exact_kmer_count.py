@@ -123,7 +123,7 @@ class KmerCounter(object):
                 of.write(text)
             self._clear_memory_merge()
     def _clear_memory_merge(self):
-        self._kcounts_merge.clear()
+        self._kcounts_merge = []
         self._nmem_merge = 0
     def _store_kmer_count_merge(self, kcount, ofn):
         #print(kcount)
@@ -177,8 +177,9 @@ class KmerCounter(object):
 
 ## check
 # count kmers
-dataset =  'ecoli' # rymv tmv saureus ecoli dmelanogaster
-workdir = '/home/ashis/work/github/sketch-mer'
+# datasets: hbv.sim rymv.sim hpylori.sim hiv1.sim tmv.sim ecoli.sim saureus.sim dmelanogaster.sim
+dataset =  'hpylori.sim' # rymv tmv saureus ecoli dmelanogaster
+workdir = '/Users/ashis/Desktop/work/github/sketch-mer'
 odir = workdir + '/results/tmp'
 fn = workdir + '/data/' + dataset + '.fa'
 k = 22
