@@ -70,7 +70,6 @@ def errorPlot(cmEst, lsEst, expected, plotFileName, nbins=100):
     plt.legend(loc='upper right')
     plt.savefig(plotFileName)
     plt.close()
->>>>>>> ba336893dfd46556b9269918f8ce07eb95a182fc
 
 
 errors = []
