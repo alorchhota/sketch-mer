@@ -49,7 +49,7 @@ def meanErr(estimated, expected):
     stdErr = np.mean(err)
     return stdErr
 
-def errorPlot(cmEst, lsEst, expected, plotFileName, nbins=100):
+def errorHist(cmEst, lsEst, expected, plotFileName, nbins=100):
     # cmEst error
     err1 = [abs(cmEst[i]-expected[i]) for i in range(len(cmEst))]
     #y,binEdges=np.histogram(err, bins=nbins)
@@ -64,8 +64,128 @@ def errorPlot(cmEst, lsEst, expected, plotFileName, nbins=100):
     xmin = min(min(err1), min(err))
     xmax = max(max(err1), max(err))
     bins = np.linspace(xmin, xmax, nbins)
-    plt.hist(err, bins, alpha=0.5, label='sketch-mer')
-    plt.hist(err1, bins, alpha=0.5, label='countmin')
+    plt.hist(err, bins, alpha=0.5, label='Sketch-mer')
+    plt.hist(err1, bins, alpha=0.5, label='CountMinSketch')
+    plt.xlabel('Error')
+    plt.ylabel('Frequency')
+    # save
+    plt.legend(loc='upper right')
+    plt.savefig(plotFileName)
+    plt.close()
+
+def avgErrBarChart(cmMeanErr, lsMeanErr, plotFileName):
+    N = 2
+    ind = np.arange(N)  # the x locations for the groups
+    width = 0.05       # the width of the bars
+
+    fig, ax = plt.subplots()
+    rects =  []
+    colors = ['red','green', 'blue', 'yellow', 'orange', 'black', 'gray', 'olive']
+    for i in range(len(cmMeanErr)):
+        errs = (cmMeanErr[i], lsMeanErr[i])
+        rects.append(ax.bar(ind+i*width-.15, errs, width, color=colors[i]))
+
+    # add some text for labels, title and axes ticks
+    ax.set_ylabel('Average Error')
+    ax.set_xticks(ind+width)
+    ax.set_xticklabels( ('countminsketch', 'sketch-mer'))
+
+
+    ax.legend( (rects[0][0], rects[1][0], rects[2][0], rects[3][0],
+                rects[4][0], rects[5][0], rects[6][0], rects[7][0]), ('1','10','100', '200', '400', '600', '800', '1000') )
+
+    def autolabel(rects):
+        # attach some text labels
+        for rect in rects:
+            height = rect.get_height()
+            ax.text(rect.get_x()+rect.get_width()/2., 1.05*height, '%d'%int(height),
+                    ha='center', va='bottom')
+    #for i in range(len(cmMeanErr)):
+    #    autolabel(rects[i])
+
+    plt.show()
+    plt.savefig(plotFileName)
+    plt.close()
+
+def errComparisonBarChart(errors, batchSize, plotFileName, ylim):
+    # (dataset, cmerr, lserr)
+    #batchErrors = [err for err in errors if err[1]==batchSize and err[0] != 'saureus.sim' and err[0]!='hpylori.sim']
+    batchErrors = [err for err in errors if err[1]==batchSize]
+    batchErrors = sorted(batchErrors, key=lambda x:x[8])
+    datasets = [err[0][:-4] for err in batchErrors]
+    cmerr = [err[8] for err in batchErrors]
+    lserr = [ err[9] for err in batchErrors]
+
+    N = len(batchErrors)
+    ind = np.arange(N)  # the x locations for the groups
+    width = 0.25       # the width of the bars
+
+    fig, ax = plt.subplots()
+    rects1 = ax.bar(ind, cmerr, width, color='gray')
+    rects2 = ax.bar(ind+width, lserr, width, color='orange')
+
+    # add some text for labels, title and axes ticks
+    ax.set_ylabel('Average Error')
+    ax.set_ylim((0,ylim))
+    ax.set_xticks(ind+width)
+    ax.set_xticklabels( datasets)
+
+    ax.legend( (rects1[0], rects2[0]), ('CountMinSketch', 'Sketch-mer') )
+
+    def autolabel(rects):
+        # attach some text labels
+        for rect in rects:
+            height = rect.get_height()
+            ax.text(rect.get_x()+rect.get_width()/2., 1.05*height, '%d'%int(height),
+                    ha='center', va='bottom')
+    autolabel(rects1)
+    autolabel(rects2)
+
+    plt.show()
+    plt.savefig(plotFileName)
+    plt.close()
+
+
+def errorVsNumKmer(errors, batchSize, plotFileName, ylim):
+    batchErrors = [err for err in errors if err[1]==batchSize]
+    batchErrors = sorted(batchErrors, key=lambda x:numKmers[x[0]])
+    datasets = [err[0] for err in batchErrors]
+    cmerr = [err[8] for err in batchErrors]
+    lserr = [ err[9] for err in batchErrors]
+    nkm = [np.log10(numKmers[ds]) for ds in datasets]
+    # plot
+    p.plot(nkm,cmerr,'-', label='CountMinSketch', color='gray')
+    p.plot(nkm,lserr,'-', label='Sketch-mer', color='orange')
+    plt.xlabel('log(# distinct k-mers)')
+    plt.ylabel('Average Error')
+    plt.ylim((0,ylim))
+    # save
+    plt.legend(loc='upper right')
+    plt.savefig(plotFileName)
+    plt.close()
+
+
+def hashSizeVsError(plotFileName):
+    eps = [.0001, .001, .003, .005]
+    w = [np.log10(int(np.ceil(np.exp(1) / e))) for e in eps]
+    dataset = 'haureus'
+    cmerr_hau = [734.665,7842.57,23795.075,39827.015]
+    lserr_hau = [11.775,31.915,51.88,62.255]
+
+    cmerr_hiv = [0.06,14.665,57.245,105.7]
+    lserr_hiv = [0.445,2.73,3.88,4.685]
+
+    cmerr_tmv = [0.015,12.98,57.73,104.715]
+    lserr_tmv = [0.5,3.135,5.37,5.705]
+
+    # plot
+    plt.plot(w,cmerr_hiv,'-o', label='CountMinSketch (hiv)', color='gray')
+    plt.plot(w,lserr_hiv,'-o', label='Sketch-mer (hiv)', color='orange')
+    plt.plot(w,cmerr_tmv,'-o', label='CountMinSketch (tmv)', color='olive')
+    plt.plot(w,lserr_tmv,'-o', label='Sketch-mer (tmv)', color='tomato')
+    plt.xlabel('log (Hash Size)')
+    plt.ylabel('Average Error')
+    #plt.ylim((0,15000))
     # save
     plt.legend(loc='upper right')
     plt.savefig(plotFileName)
@@ -74,13 +194,14 @@ def errorPlot(cmEst, lsEst, expected, plotFileName, nbins=100):
 
 errors = []
 for dataset in datasets:
+    barFileName = workdir + '/results/bar_' + dataset + '.png'
     for batchSize in batchSizes:
         if batchSize > numKmers[dataset]:
             continue
         trueCountsFileName = workdir + '/data/test/test_' + dataset + '_' + str(batchSize) + '.txt'
         cmCountsFileName = workdir + '/results/cmresult_' + dataset + '_' + str(batchSize) + '.txt'
         lsCountsFileName = workdir + '/results/lsresult_' + dataset + '_' + str(batchSize) + '.txt'
-        plotFileName = workdir + '/results/plot_' + dataset + '_' + str(batchSize) + '.png'
+        histFileName = workdir + '/results/hist_' + dataset + '_' + str(batchSize) + '.png'
         # read files
         trueKmerCounts = list(readutil.read_kmer_counts_line_by_line(trueCountsFileName))
         cmKmerCounts = list(readutil.read_kmer_counts_line_by_line(cmCountsFileName))
@@ -105,7 +226,19 @@ for dataset in datasets:
         # save error
         errors.append((dataset, batchSize, cmSolidError, lsSolidError, cmAvgError, lsAvgError, cmAvgError2, lsAvgError2, cmMeanError, lsMeanError))
         # plot error graph
-        errorPlot(cmCounts, lsCounts, trueCounts, plotFileName)
+        errorHist(cmCounts, lsCounts, trueCounts, histFileName)
+    nbat = len(batchSizes)
+    dbErrors = errors[-nbat:]
+    cmErr = [item[8] for item in dbErrors]
+    lsErr = [item[9] for item in dbErrors]
+    avgErrBarChart(cmErr, lsErr, barFileName)
+
+errCompBarPlotFileName = workdir + '/results/bar_err_comp_200.png'
+errComparisonBarChart(errors, 200, errCompBarPlotFileName, 100)
+errVsNumKmerFileName = workdir + '/results/lineErrVsNumKmer_200.png'
+errorVsNumKmer(errors, 200, errVsNumKmerFileName, 500)
+errVsHashSizeFileName = workdir + '/results/lineErrVsHashSize_200.png'
+hashSizeVsError(errVsHashSizeFileName)
 
 # write errors in a file
 with open(outFileName, 'w') as of:
