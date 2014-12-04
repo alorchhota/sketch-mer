@@ -4,9 +4,8 @@ workdir = '/Users/ashis/Desktop/work/github/sketch-mer'
 k = 22
 #datasets = ['rymv', 'tmv', 'saureus', 'ecoli', 'dmelanogaster']
 datasets = ['hbv.sim', 'rymv.sim', 'hpylori.sim', 'hiv1.sim', 'tmv.sim', 'ecoli.sim', 'saureus.sim']
-batchSizes = [1,10,100,1000,10000,100000]
-delta=10**-3
-epsilon = 0.0005
+#batchSizes = [1,10,100,1000,10000,100000]
+batchSizes = [1,10,100, 200, 400, 600, 800, 1000]
 numKmers = {'rymv': 199,
             'tmv': 6374,
             'saureus': 2781271,
