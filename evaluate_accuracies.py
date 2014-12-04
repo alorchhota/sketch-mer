@@ -39,6 +39,12 @@ def averageError2(estimated, expected):
     avgErr = (sum(errAbs)+0.0) / len(estimated)
     return avgErr
 
+def averageError3(estimated, expected):
+    errAbs = [abs(estimated[i]-expected[i]) for i in range(len(estimated))]
+    avgErr = (sum(errAbs)+0.0) / len(estimated)
+    return avgErr
+
+
 errors = []
 for dataset in datasets:
     for batchSize in batchSizes:
@@ -65,8 +71,11 @@ for dataset in datasets:
         # calculate average error 2 (no square)
         cmAvgError2 = averageError2(cmCounts, trueCounts)
         lsAvgError2 = averageError2(lsCounts, trueCounts)
+        # calculate average error 2 (not divided by true count)
+        cmAvgError3 = averageError3(cmCounts, trueCounts)
+        lsAvgError3 = averageError3(lsCounts, trueCounts)
         # save error
-        errors.append((dataset, batchSize, cmSolidError, lsSolidError, cmAvgError, lsAvgError, cmAvgError2, lsAvgError2))
+        errors.append((dataset, batchSize, cmSolidError, lsSolidError, cmAvgError, lsAvgError, cmAvgError2, lsAvgError2, cmAvgError3, lsAvgError3))
 
 # write errors in a file
 with open(outFileName, 'w') as of:
@@ -77,7 +86,9 @@ with open(outFileName, 'w') as of:
                         'countmin_avg_err',
                         'lsquare_avg_err',
                         'countmin_avg_err2',
-                        'lsquare_avg_err2'])
+                        'lsquare_avg_err2',
+                        'countmin_avg_err3',
+                        'lsquare_avg_err3'])
     text = '\n'.join(['\t'.join([str(item) for item in err]) for err in errors])
     of.write(header + '\n' + text)
 print('done')
