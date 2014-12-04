@@ -1,4 +1,9 @@
 import readutil
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import pylab as p
 
 workdir = '/Users/ashis/Desktop/work/github/sketch-mer'
 k = 22
@@ -39,6 +44,34 @@ def averageError2(estimated, expected):
     avgErr = (sum(errAbs)+0.0) / len(estimated)
     return avgErr
 
+def meanErr(estimated, expected):
+    err = [abs(estimated[i]-expected[i]) for i in range(len(estimated))]
+    stdErr = np.mean(err)
+    return stdErr
+
+def errorPlot(cmEst, lsEst, expected, plotFileName, nbins=100):
+    # cmEst error
+    err1 = [abs(cmEst[i]-expected[i]) for i in range(len(cmEst))]
+    #y,binEdges=np.histogram(err, bins=nbins)
+    #bincenters = 0.5*(binEdges[1:]+binEdges[:-1])
+    #p.plot(bincenters,y,'-', label='bg', color='blue')
+
+    # lsEst error
+    err = [abs(lsEst[i]-expected[i]) for i in range(len(lsEst))]
+    #y,binEdges=np.histogram(err, bins=nbins)
+    #bincenters = 0.5*(binEdges[1:]+binEdges[:-1])
+    #p.plot(bincenters,y,'-', label='bg', color='red')
+    xmin = min(min(err1), min(err))
+    xmax = max(max(err1), max(err))
+    bins = np.linspace(xmin, xmax, nbins)
+    plt.hist(err, bins, alpha=0.5, label='sketch-mer')
+    plt.hist(err1, bins, alpha=0.5, label='countmin')
+    # save
+    plt.legend(loc='upper right')
+    plt.savefig(plotFileName)
+    plt.close()
+
+
 errors = []
 for dataset in datasets:
     for batchSize in batchSizes:
@@ -47,6 +80,7 @@ for dataset in datasets:
         trueCountsFileName = workdir + '/data/test/test_' + dataset + '_' + str(batchSize) + '.txt'
         cmCountsFileName = workdir + '/results/cmresult_' + dataset + '_' + str(batchSize) + '.txt'
         lsCountsFileName = workdir + '/results/lsresult_' + dataset + '_' + str(batchSize) + '.txt'
+        plotFileName = workdir + '/results/plot_' + dataset + '_' + str(batchSize) + '.png'
         # read files
         trueKmerCounts = list(readutil.read_kmer_counts_line_by_line(trueCountsFileName))
         cmKmerCounts = list(readutil.read_kmer_counts_line_by_line(cmCountsFileName))
@@ -65,8 +99,13 @@ for dataset in datasets:
         # calculate average error 2 (no square)
         cmAvgError2 = averageError2(cmCounts, trueCounts)
         lsAvgError2 = averageError2(lsCounts, trueCounts)
+        # calculate standar deviation of error
+        cmMeanError = meanErr (cmCounts, trueCounts)
+        lsMeanError = meanErr(lsCounts, trueCounts)
         # save error
-        errors.append((dataset, batchSize, cmSolidError, lsSolidError, cmAvgError, lsAvgError, cmAvgError2, lsAvgError2))
+        errors.append((dataset, batchSize, cmSolidError, lsSolidError, cmAvgError, lsAvgError, cmAvgError2, lsAvgError2, cmMeanError, lsMeanError))
+        # plot error graph
+        errorPlot(cmCounts, lsCounts, trueCounts, plotFileName)
 
 # write errors in a file
 with open(outFileName, 'w') as of:
@@ -77,7 +116,9 @@ with open(outFileName, 'w') as of:
                         'countmin_avg_err',
                         'lsquare_avg_err',
                         'countmin_avg_err2',
-                        'lsquare_avg_err2'])
+                        'lsquare_avg_err2',
+                        'countmin_mean_err',
+                        'lsquare_mean_err'])
     text = '\n'.join(['\t'.join([str(item) for item in err]) for err in errors])
     of.write(header + '\n' + text)
 print('done')
