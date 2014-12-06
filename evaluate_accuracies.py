@@ -5,7 +5,8 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import pylab as p
 
-workdir = '/Users/ashis/Desktop/work/github/sketch-mer'
+#workdir = '/Users/ashis/Desktop/work/github/sketch-mer'
+workdir = '.'
 k = 22
 #datasets = ['rymv', 'tmv', 'saureus', 'ecoli', 'dmelanogaster']
 datasets = ['hbv.sim', 'rymv.sim', 'hpylori.sim', 'hiv1.sim', 'tmv.sim', 'ecoli.sim', 'saureus.sim']
@@ -233,10 +234,12 @@ for dataset in datasets:
     lsErr = [item[9] for item in dbErrors]
     avgErrBarChart(cmErr, lsErr, barFileName)
 
-errCompBarPlotFileName = workdir + '/results/bar_err_comp_200.png'
-errComparisonBarChart(errors, 200, errCompBarPlotFileName, 100)
-errVsNumKmerFileName = workdir + '/results/lineErrVsNumKmer_200.png'
-errorVsNumKmer(errors, 200, errVsNumKmerFileName, 500)
+for batchSize in batchSizes:
+    errCompBarPlotFileName = workdir + '/results/bar_err_comp_' + str(batchSize) + '.png'
+    errComparisonBarChart(errors, batchSize, errCompBarPlotFileName, 100)
+    errVsNumKmerFileName = workdir + '/results/lineErrVsNumKmer_' + str(batchSize)  + '.png'
+    errorVsNumKmer(errors, batchSize, errVsNumKmerFileName, 500)
+
 errVsHashSizeFileName = workdir + '/results/lineErrVsHashSize_200.png'
 hashSizeVsError(errVsHashSizeFileName)
 
@@ -254,5 +257,5 @@ with open(outFileName, 'w') as of:
                         'lsquare_mean_err'])
     text = '\n'.join(['\t'.join([str(item) for item in err]) for err in errors])
     of.write(header + '\n' + text)
-print('done')
+print('done! see output in results folder.')
 

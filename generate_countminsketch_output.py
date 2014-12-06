@@ -32,13 +32,14 @@ def generate_countmin_ls_output(sketch, testFileName, cmOutFileName, lsOutFileNa
                           for km in testKmers])
         outfile.write(text)
 
-workdir = '/Users/ashis/Desktop/work/github/sketch-mer'
+#workdir = '/Users/ashis/Desktop/work/github/sketch-mer'
+workdir = '.'
 k = 22
 #datasets = ['rymv', 'tmv', 'saureus', 'ecoli', 'dmelanogaster']
 datasets = ['hbv.sim', 'rymv.sim', 'hpylori.sim', 'hiv1.sim', 'tmv.sim', 'ecoli.sim', 'saureus.sim']
 batchSizes = [1,10,100, 200, 400, 600, 800, 1000]
 delta=10**-3
-epsilon = 0.001
+epsilon = 0.005
 numKmers = {'rymv': 199,
             'tmv': 6374,
             'saureus': 2781271,

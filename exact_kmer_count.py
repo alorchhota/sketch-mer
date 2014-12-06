@@ -179,7 +179,8 @@ class KmerCounter(object):
 # count kmers
 # datasets: hbv.sim rymv.sim hpylori.sim hiv1.sim tmv.sim ecoli.sim saureus.sim dmelanogaster.sim
 dataset =  'hpylori.sim' # rymv tmv saureus ecoli dmelanogaster
-workdir = '/Users/ashis/Desktop/work/github/sketch-mer'
+#workdir = '/Users/ashis/Desktop/work/github/sketch-mer'
+workdir = '.'
 odir = workdir + '/results/tmp'
 fn = workdir + '/data/' + dataset + '.fa'
 k = 22

@@ -22,7 +22,8 @@ def generate_test_data(batchSize, numKmer, kmerFileName, outFileName):
             curIndex += 1
 
 
-workdir = '/Users/ashis/Desktop/work/github/sketch-mer'
+#workdir = '/Users/ashis/Desktop/work/github/sketch-mer'
+workdir = '.'
 k = 22
 #datasets = ['rymv', 'tmv', 'saureus', 'ecoli', 'dmelanogaster']
 datasets = ['hbv.sim', 'rymv.sim', 'hpylori.sim', 'hiv1.sim', 'tmv.sim', 'ecoli.sim', 'saureus.sim']
@@ -48,3 +49,5 @@ for dataset in datasets:
         ofn = workdir + '/results/test_'+dataset+ '_' + str(batchSize) + '.txt'
         kmerfn = workdir + '/data/22mer_exact_counts/' + dataset + '_counts.txt'
         generate_test_data(batchSize, numKmers[dataset], kmerfn, ofn)
+
+print('done! see output in results folder.')
